@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Entrar — Agenda de Compras</title>
+    <!-- Apply the saved theme before paint so login matches the user's choice. -->
+    <script>
+      try {
+        var t = localStorage.getItem("theme");
+        if (t) document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="auth-wrap">
+      <div class="auth-card card">
+        <div class="auth-card__header">
+          <span class="topbar__logo" aria-hidden="true" style="width:40px;height:40px;border-radius:12px;margin:0 auto var(--s4)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M5 12h14M5 17h9"/></svg>
+          </span>
+          <h1 class="auth-card__title">Agenda de Compras</h1>
+          <p class="auth-card__subtitle">Entre com e-mail e senha.</p>
+        </div>
+
+        <div id="config-banner"></div>
+
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label class="field__label" for="email">E-mail</label>
+            <input
+              class="input"
+              type="email"
+              id="email"
+              name="email"
+              autocomplete="username"
+              placeholder="voce@empresa.com"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="password">Senha</label>
+            <input
+              class="input"
+              type="password"
+              id="password"
+              name="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          <div
+            id="login-error"
+            class="banner"
+            style="display: none; background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 30%, transparent); color: var(--danger);"
+          ></div>
+
+          <button class="btn btn--primary btn--block" type="submit" id="login-btn">
+            Entrar
+          </button>
+        </form>
+
+        <p class="auth-card__note">
+          Os acessos são criados pelo administrador no painel do Supabase.
+        </p>
+      </div>
+    </main>
+
+    <!-- Supabase JS v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+  </body>
+</html>

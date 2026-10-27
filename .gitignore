@@ -1,0 +1,17 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+
+# Node (só usado para o servidor local de teste)
+node_modules/
+
+# Supabase CLI (local — não versionar)
+supabase/.branches/
+supabase/.temp/
+.env
+.env.*
+
+# Arquivos temporários
+_*.js
+*.tmp

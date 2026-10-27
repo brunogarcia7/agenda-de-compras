@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Compras — Agenda de Compras</title>
+    <script>
+      try {
+        var t = localStorage.getItem("theme");
+        if (t) document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar__inner">
+        <button class="topbar__burger" id="nav-burger" type="button" aria-label="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <span class="topbar__brand">
+          <span class="topbar__logo" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M5 12h14M5 17h9"/></svg>
+          </span>
+          Agenda de Compras
+        </span>
+        <nav class="topbar__nav" id="nav-links">
+          <a class="topbar__link" href="index.html">Nova solicitação</a>
+          <a class="topbar__link topbar__link--active" href="dashboard.html">Compras</a>
+          <a class="topbar__link" href="history.html">Histórico</a>
+        </nav>
+        <div class="topbar__user-menu" id="user-menu"></div>
+      </div>
+    </header>
+
+    <main class="page page--wide">
+      <div class="page__header">
+        <h1 class="page__title">Compras</h1>
+        <p class="page__subtitle">O que precisa comprar, organizado por categoria.</p>
+      </div>
+
+      <div id="config-banner"></div>
+
+      <div class="toolbar">
+        <!-- Summary strip -->
+        <div class="summary" id="summary"></div>
+
+        <!-- Search + filters -->
+        <div class="controls">
+          <div class="search">
+            <span class="search__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </span>
+            <input class="input" type="search" id="search" placeholder="Buscar material ou obra…" aria-label="Buscar material ou obra" />
+          </div>
+
+          <div class="chips" id="filter-chips" role="group" aria-label="Filtros rápidos">
+            <button class="chip chip--active" data-filter="todos" type="button">Todos</button>
+            <button class="chip" data-filter="prioridades" type="button">Prioridades</button>
+            <button class="chip" data-filter="urgentes" type="button">Urgentes</button>
+            <button class="chip" data-filter="recentes" type="button">Recentes</button>
+          </div>
+
+          <select class="select" id="obra-filter" aria-label="Filtrar por obra" style="width:auto;min-width:170px">
+            <option value="">Todas as obras</option>
+          </select>
+
+          <span class="spacer"></span>
+
+          <div class="zoom" role="group" aria-label="Zoom do painel">
+            <button class="zoom__btn" type="button" id="zoom-out" aria-label="Diminuir zoom">−</button>
+            <button class="zoom__value" type="button" id="zoom-reset" title="Restaurar 100%">100%</button>
+            <button class="zoom__btn" type="button" id="zoom-in" aria-label="Aumentar zoom">+</button>
+          </div>
+
+          <button class="icon-btn" id="theme-toggle" type="button" aria-label="Alternar tema" title="Tema claro/escuro">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          </button>
+
+          <button class="icon-btn" id="refresh-btn" type="button" aria-label="Atualizar" title="Atualizar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="board" id="board"></div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="ui.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>
