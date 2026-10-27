@@ -179,9 +179,6 @@ Deno.serve(async (req: Request) => {
         temperature: 0.1,
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
-        // Disable "thinking" — this is a direct extraction task, so skipping
-        // the reasoning pass cuts latency a lot on 3.x flash models.
-        thinkingConfig: { thinkingBudget: 0 },
       },
     });
 
