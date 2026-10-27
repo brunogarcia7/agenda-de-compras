@@ -69,6 +69,18 @@ const SYSTEM_INSTRUCTION = [
   "(ex.: unidades vs caixas) NÃO some; mantenha itens separados.",
   "Na dúvida, mantenha separado — o usuário pode juntar manualmente depois.",
   "",
+  "OBSERVAÇÃO (separe do material):",
+  "O texto pode conter instruções que NÃO são materiais — por exemplo:",
+  "\"entregar conforme liberação da obra\", \"retirar pela manhã\", \"falar com",
+  "o João\", \"urgente para segunda\", \"nota em nome da empresa X\". Essas frases",
+  "NÃO devem virar itens. Coloque-as no campo \"observation\".",
+  "- Se a observação se aplica ao pedido todo, repita o mesmo texto no campo",
+  "  \"observation\" de todos os itens.",
+  "- Se a observação se refere claramente a um item específico, coloque apenas",
+  "  no \"observation\" daquele item.",
+  "- Se não houver observação, use string vazia \"\".",
+  "Nunca invente observações; extraia apenas o que estiver no texto.",
+  "",
   "Normalize nomes para português claro e conciso.",
 ].join("\n");
 
@@ -83,6 +95,7 @@ const RESPONSE_SCHEMA = {
           category: { type: "STRING" },
           name: { type: "STRING" },
           quantity: { type: "STRING" },
+          observation: { type: "STRING" },
         },
         required: ["category", "name", "quantity"],
       },
@@ -242,6 +255,7 @@ Deno.serve(async (req: Request) => {
         category: String(it.category ?? "Outros").trim(),
         name: String(it.name ?? "").trim(),
         quantity: String(it.quantity ?? "A definir").trim(),
+        observation: String(it.observation ?? "").trim(),
       }));
 
     return json({ items });

@@ -53,6 +53,7 @@ async function analyzeMaterials(rawMaterials) {
       category: String(it.category || "Outros").trim(),
       name: String(it.name || "").trim(),
       quantity: String(it.quantity || "A definir").trim(),
+      observation: String(it.observation || "").trim(),
     }));
 }
 window.analyzeMaterials = analyzeMaterials;
@@ -122,10 +123,6 @@ async function initRequisitionForm() {
     e.preventDefault();
 
     const obra = form.obra.value.trim();
-    // "observacao" is no longer a field in the composer, but the column
-    // and existing records are preserved. Read it safely if a field ever
-    // exists again; otherwise save an empty string.
-    const observacao = form.observacao ? form.observacao.value.trim() : "";
     const materiais = form.materiais.value.trim();
     const urgenciaInput = form.querySelector('input[name="urgencia"]:checked');
     const urgencia = urgenciaInput ? urgenciaInput.value : "";
@@ -158,7 +155,8 @@ async function initRequisitionForm() {
       const rows = items.map((it) => ({
         batch_id: batchId,
         obra,
-        observacao,
+        // The IA separates observations from materials and returns one per item.
+        observacao: it.observation || "",
         category: it.category,
         name: it.name,
         quantity: it.quantity,
