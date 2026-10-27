@@ -592,11 +592,13 @@ function openCardMenu(item, card, anchor) {
   closeAnyMenu();
   const menu = document.createElement("div");
   menu.className = "menu";
+  const hasObs = (item.observacao || "").trim();
   menu.innerHTML =
     menuItem("edit", "Editar") +
     menuItem("move", "Mover para…") +
     menuItem("merge", "Juntar com…") +
     menuItem("copy", "Copiar") +
+    (hasObs ? menuItem("copy-obs", "Copiar observação") : "") +
     '<div class="menu__sep"></div>' +
     '<div class="menu__label">Urgência</div>' +
     urgencyRow(item.urgency) +
@@ -635,6 +637,7 @@ function openCardMenu(item, card, anchor) {
     if (action === "edit") openEditModal(item, card);
     else if (action === "merge") openMergeModal(item);
     else if (action === "copy") copyItem(item);
+    else if (action === "copy-obs") copyItemObs(item);
     else if (action === "done") markAsDone(item, card);
     else if (action === "delete") deleteItem(item, card);
   });
@@ -780,6 +783,7 @@ function menuIcon(a) {
     case "move": return i('<path d="M5 12h14M13 6l6 6-6 6"/>');
     case "merge": return i('<path d="M7 3v4a4 4 0 0 0 4 4h2a4 4 0 0 1 4 4v4M17 3v4a4 4 0 0 1-4 4h-2a4 4 0 0 0-4 4v4"/>');
     case "copy": return i('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>');
+    case "copy-obs": return i('<path d="M8 6h10M8 10h10M8 14h6"/><path d="M4 6h.01M4 10h.01M4 14h.01"/>');
     case "done": return i('<path d="M20 6 9 17l-5-5"/>');
     case "delete": return i('<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>');
     default: return "";
@@ -946,8 +950,10 @@ function openBundleMenu(entry, card, anchor) {
   closeAnyMenu();
   const menu = document.createElement("div");
   menu.className = "menu";
+  const hasObs = entry.items.some((i) => (i.observacao || "").trim());
   menu.innerHTML =
     menuItem("copy", "Copiar lista") +
+    (hasObs ? menuItem("copy-obs", "Copiar observação") : "") +
     menuItem("ungroup", "Desagrupar") +
     '<div class="menu__sep"></div>' +
     menuItem("done", "Marcar como comprado");
@@ -963,9 +969,25 @@ function openBundleMenu(entry, card, anchor) {
     if (!b) return;
     closeAnyMenu();
     if (b.dataset.action === "copy") copyBundle(entry);
+    else if (b.dataset.action === "copy-obs") copyBundleObs(entry);
     else if (b.dataset.action === "ungroup") ungroupBundle(entry);
     else if (b.dataset.action === "done") markBundleDone(entry, card);
   });
+}
+
+/** Copy only the distinct observations of a bundle. */
+async function copyBundleObs(entry) {
+  const obss = [...new Set(entry.items.map((i) => (i.observacao || "").trim()).filter(Boolean))];
+  if (!obss.length) {
+    window.showToast("Sem observação para copiar.", "error");
+    return;
+  }
+  try {
+    await window.UI.copyToClipboard(obss.join("\n"));
+    window.showToast("Observação copiada.", "success");
+  } catch (_) {
+    window.showToast("Não foi possível copiar.", "error");
+  }
 }
 
 /** Copy all items of a bundle in one message. */
@@ -1060,6 +1082,21 @@ async function copyItem(item) {
   try {
     await window.UI.copyToClipboard(parts.join("\n"));
     window.showToast("Item copiado.", "success");
+  } catch (_) {
+    window.showToast("Não foi possível copiar.", "error");
+  }
+}
+
+/** Copy only this item's observation. */
+async function copyItemObs(item) {
+  const obs = (item.observacao || "").trim();
+  if (!obs) {
+    window.showToast("Sem observação para copiar.", "error");
+    return;
+  }
+  try {
+    await window.UI.copyToClipboard(obs);
+    window.showToast("Observação copiada.", "success");
   } catch (_) {
     window.showToast("Não foi possível copiar.", "error");
   }
