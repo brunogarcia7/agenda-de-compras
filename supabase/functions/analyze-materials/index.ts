@@ -149,13 +149,15 @@ Deno.serve(async (req: Request) => {
     // then stable fallbacks that this project's key is known to support.
     // This protects against a single model being overloaded (503) or
     // unavailable (404) for this API key.
+    // Prefer the lighter/faster "flash-lite" models first for this simple
+    // extraction task; fall back to the fuller flash models if needed.
     const configured = Deno.env.get("GEMINI_MODEL");
     const candidates = [
       configured,
+      "gemini-flash-lite-latest",
+      "gemini-3.5-flash-lite",
       "gemini-flash-latest",
       "gemini-3.5-flash",
-      "gemini-3.6-flash",
-      "gemini-3.5-flash-lite",
     ].filter((m, i, arr): m is string => !!m && arr.indexOf(m) === i);
 
     const requestBody = JSON.stringify({
@@ -177,6 +179,9 @@ Deno.serve(async (req: Request) => {
         temperature: 0.1,
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
+        // Disable "thinking" — this is a direct extraction task, so skipping
+        // the reasoning pass cuts latency a lot on 3.x flash models.
+        thinkingConfig: { thinkingBudget: 0 },
       },
     });
 
@@ -192,8 +197,8 @@ Deno.serve(async (req: Request) => {
         encodeURIComponent(m) +
         ":generateContent";
 
-      // Up to 3 attempts per model, with backoff on transient errors.
-      for (let attempt = 0; attempt < 3; attempt++) {
+      // Up to 2 attempts per model, with backoff on transient errors.
+      for (let attempt = 0; attempt < 2; attempt++) {
         // New-format keys (prefix "AQ.") must be sent in the
         // x-goog-api-key header, not as a ?key= query param.
         const res = await fetch(endpoint, {

@@ -493,6 +493,13 @@ function renderBundleCard(entry) {
       window.UI.escapeHtml(obras.join(", ")) + "</div>"
     : "";
 
+  // Distinct observations across the grouped items (no repetition).
+  const obss = [...new Set(items.map((i) => (i.observacao || "").trim()).filter(Boolean))];
+  const obsRow = obss.length
+    ? '<div class="item-card__meta-row"><strong>Obs:</strong> ' +
+      window.UI.escapeHtml(obss.join(" · ")) + "</div>"
+    : "";
+
   const lines = items
     .map(
       (it) =>
@@ -517,7 +524,7 @@ function renderBundleCard(entry) {
     window.UI.glyph("kebab", 18) + "</button>" +
     "</div>" +
     '<div class="bundle-lines">' + lines + "</div>" +
-    '<div class="item-card__meta">' + obraRow + "</div>" +
+    '<div class="item-card__meta">' + obraRow + obsRow + "</div>" +
     '<div class="item-card__footer">' +
     '<span class="item-card__tags">' +
     '<span class="tag tag--' + meta.cls + '"><span class="segmented__dot segmented__dot--' + meta.cls + '"></span>' +
