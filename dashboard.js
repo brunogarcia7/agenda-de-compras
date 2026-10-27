@@ -535,7 +535,48 @@ function renderBundleCard(entry) {
     openBundleMenu(entry, card, e.currentTarget);
   });
 
+  // A single card dragged onto a bundle joins that bundle.
+  wireBundleDropTarget(card, entry);
+
   return card;
+}
+
+/** Let a bundle card accept another card dropped onto it (add to group). */
+function wireBundleDropTarget(card, entry) {
+  card.addEventListener("dragover", (e) => {
+    if (!draggedCard || !draggedCard.__item) return; // only single cards join
+    e.preventDefault();
+    e.stopPropagation();
+    card.classList.add("item-card--join-target");
+  });
+  card.addEventListener("dragleave", (e) => {
+    if (!card.contains(e.relatedTarget)) card.classList.remove("item-card--join-target");
+  });
+  card.addEventListener("drop", (e) => {
+    if (!draggedCard || !draggedCard.__item) return;
+    e.preventDefault();
+    e.stopPropagation();
+    card.classList.remove("item-card--join-target");
+    joinHandled = true;
+    const source = draggedCard.__item;
+    confirmJoinToBundle(source, entry);
+  });
+}
+
+function confirmJoinToBundle(source, entry) {
+  if (!source || !entry || !entry.items.length) return;
+  window.UI.modal({
+    title: "Agrupar materiais",
+    bodyHTML:
+      '<p style="margin:0;color:var(--text-2);font-size:14px">Adicionar ' +
+      "<strong>" + window.UI.escapeHtml(source.name) + "</strong> a este grupo de " +
+      entry.items.length + " itens?</p>",
+    confirmLabel: "Agrupar",
+    onConfirm: async () => {
+      // Join into the existing bundle via any of its items.
+      await joinItems(source, entry.items[0]);
+    },
+  });
 }
 
 /* ----------------------- Card menu ----------------------- */
