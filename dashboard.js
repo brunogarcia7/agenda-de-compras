@@ -1104,10 +1104,13 @@ function deleteItem(item, card) {
 /* --------------------- Drag & drop ----------------------- */
 
 let draggedCard = null;
+let joinHandled = false; // true when a drop lands on another card (join), so the
+                         // list drop skips the normal reorder.
 
 function wireDragSource(card) {
   card.addEventListener("dragstart", (e) => {
     draggedCard = card;
+    joinHandled = false;
     card.classList.add("item-card--dragging");
     e.dataTransfer.effectAllowed = "move";
     try { e.dataTransfer.setData("text/plain", card.dataset.id); } catch (_) {}
@@ -1115,7 +1118,54 @@ function wireDragSource(card) {
   card.addEventListener("dragend", () => {
     card.classList.remove("item-card--dragging");
     document.querySelectorAll(".group__list--over").forEach((el) => el.classList.remove("group__list--over"));
+    document.querySelectorAll(".item-card--join-target").forEach((el) => el.classList.remove("item-card--join-target"));
     draggedCard = null;
+  });
+
+  // Dropping a card ONTO another card offers to group them.
+  card.addEventListener("dragover", (e) => {
+    if (!draggedCard || draggedCard === card || !card.__item) return;
+    // Only treat as a join when hovering near the card's center.
+    const box = card.getBoundingClientRect();
+    const nearCenter = Math.abs(e.clientY - (box.top + box.height / 2)) < box.height * 0.32;
+    if (nearCenter) {
+      e.preventDefault();
+      e.stopPropagation();
+      card.classList.add("item-card--join-target");
+    } else {
+      card.classList.remove("item-card--join-target");
+    }
+  });
+  card.addEventListener("dragleave", () => {
+    card.classList.remove("item-card--join-target");
+  });
+  card.addEventListener("drop", (e) => {
+    if (!draggedCard || draggedCard === card || !card.__item) return;
+    if (!card.classList.contains("item-card--join-target")) return;
+    e.preventDefault();
+    e.stopPropagation();
+    card.classList.remove("item-card--join-target");
+    joinHandled = true;
+    const source = draggedCard.__item;
+    const target = card.__item;
+    confirmJoin(source, target);
+  });
+}
+
+/** Ask before grouping two materials (drag one card onto another). */
+function confirmJoin(source, target) {
+  if (!source || !target || source.id === target.id) return;
+  window.UI.modal({
+    title: "Agrupar materiais",
+    bodyHTML:
+      '<p style="margin:0;color:var(--text-2);font-size:14px">Deseja agrupar ' +
+      "<strong>" + window.UI.escapeHtml(source.name) + "</strong> e <strong>" +
+      window.UI.escapeHtml(target.name) + "</strong> no mesmo card?<br><br>" +
+      "Os dois continuam separados — ao copiar, aparecem juntos na mesma mensagem.</p>",
+    confirmLabel: "Agrupar",
+    onConfirm: async () => {
+      await joinItems(source, target);
+    },
   });
 }
 
@@ -1134,8 +1184,10 @@ function wireDropZone(list) {
   });
   list.addEventListener("drop", async (e) => {
     if (!draggedCard) return;
-    e.preventDefault();
     list.classList.remove("group__list--over");
+    // If the drop landed on a card (join), skip the reorder entirely.
+    if (joinHandled) { joinHandled = false; return; }
+    e.preventDefault();
     await persistAfterCardDrop(draggedCard, list);
   });
 }

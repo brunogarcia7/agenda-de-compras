@@ -676,6 +676,12 @@ a { color: inherit; }
 }
 .item-card:active { cursor: grabbing; }
 .item-card--dragging { opacity: 0.5; transform: scale(0.98) rotate(-0.3deg); box-shadow: var(--shadow-lg); }
+/* Highlight the card you'd group with when dropping one card onto another. */
+.item-card--join-target {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent), var(--shadow-md);
+  transform: translateY(-1px) scale(1.01);
+}
 .item-card--removing { opacity: 0; transform: scale(0.97); }
 
 /* priority = subtle full-height left bar + badge, never a red card */
