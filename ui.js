@@ -134,6 +134,26 @@
     return "Há " + d + " dias";
   }
 
+  /** Short date "DD/MM". */
+  function shortDate(iso) {
+    if (!iso) return "";
+    try {
+      return new Date(iso).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+      });
+    } catch (_) {
+      return "";
+    }
+  }
+
+  /** "Hoje · 27/10" | "Há 3 dias · 24/10". */
+  function relativeDayWithDate(iso) {
+    const rel = relativeDay(iso);
+    const dt = shortDate(iso);
+    return dt ? rel + " · " + dt : rel;
+  }
+
   /** Full date for tooltips: 22/10/2026 14:30. */
   function fullDate(iso) {
     if (!iso) return "";
@@ -373,6 +393,8 @@
     glyph,
     daysSince,
     relativeDay,
+    relativeDayWithDate,
+    shortDate,
     fullDate,
     escapeHtml,
     copyToClipboard,

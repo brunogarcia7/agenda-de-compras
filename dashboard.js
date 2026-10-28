@@ -439,7 +439,7 @@ function renderCard(item) {
       ) +
       '">' +
       (overdue ? window.UI.glyph("flag", 10) + " " : "") +
-      window.UI.relativeDay(item.created_at) +
+      window.UI.relativeDayWithDate(item.created_at) +
       "</span>",
   ];
 
@@ -544,7 +544,7 @@ function renderBundleCard(entry) {
   const badges =
     '<span class="badge badge--time' + (overdue ? " is-overdue" : "") + '">' +
     (overdue ? window.UI.glyph("flag", 10) + " " : "") +
-    window.UI.relativeDay(oldest.created_at) + "</span>";
+    window.UI.relativeDayWithDate(oldest.created_at) + "</span>";
 
   card.innerHTML =
     '<div class="item-card__top">' +
