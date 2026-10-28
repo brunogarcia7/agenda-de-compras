@@ -538,8 +538,11 @@ function renderBundleCard(entry) {
     '<div class="bundle__title"><span class="bundle__badge">' +
     window.UI.glyph("merge", 13) + " Agrupado</span>" +
     '<span class="bundle__count">' + items.length + " itens</span></div>" +
+    '<div class="item-card__actions">' +
+    '<button class="item-card__grip" type="button" aria-label="Arrastar para mover ou agrupar" title="Arraste para mover ou agrupar">' + window.UI.glyph("grip", 16) + "</button>" +
     '<button class="item-card__kebab" type="button" aria-label="Opções" title="Opções">' +
     window.UI.glyph("kebab", 18) + "</button>" +
+    "</div>" +
     "</div>" +
     '<div class="bundle-lines">' + lines + "</div>" +
     '<div class="item-card__meta">' + obraRow + obsRow + "</div>" +
@@ -562,14 +565,34 @@ function renderBundleCard(entry) {
 
   // A single card dragged onto a bundle joins that bundle.
   wireBundleDropTarget(card, entry);
+  // The bundle can itself be dragged (by its grip) onto another card/group.
+  wireBundleDragSource(card, entry);
+  wireGripHandle(card, card.querySelector(".item-card__grip"));
 
   return card;
 }
 
-/** Let a bundle card accept another card dropped onto it (add to group). */
+/** A bundle dragged onto another card/bundle merges the two groups. */
+function wireBundleDragSource(card, entry) {
+  card.addEventListener("dragstart", (e) => {
+    draggedCard = card;
+    joinHandled = false;
+    card.classList.add("item-card--dragging");
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", "bundle:" + entry.id); } catch (_) {}
+  });
+  card.addEventListener("dragend", () => {
+    card.classList.remove("item-card--dragging");
+    document.querySelectorAll(".item-card--join-target").forEach((el) => el.classList.remove("item-card--join-target"));
+    draggedCard = null;
+  });
+}
+
+/** Let a bundle card accept another card/bundle dropped onto it. */
 function wireBundleDropTarget(card, entry) {
   card.addEventListener("dragover", (e) => {
-    if (!draggedCard || !draggedCard.__item) return; // only single cards join
+    if (!draggedCard || draggedCard === card) return; // ignore self
+    if (!draggedSourceItem()) return;
     e.preventDefault();
     e.stopPropagation();
     card.classList.add("item-card--join-target");
@@ -578,12 +601,13 @@ function wireBundleDropTarget(card, entry) {
     if (!card.contains(e.relatedTarget)) card.classList.remove("item-card--join-target");
   });
   card.addEventListener("drop", (e) => {
-    if (!draggedCard || !draggedCard.__item) return;
+    if (!draggedCard || draggedCard === card) return;
+    const source = draggedSourceItem();
+    if (!source) return;
     e.preventDefault();
     e.stopPropagation();
     card.classList.remove("item-card--join-target");
     joinHandled = true;
-    const source = draggedCard.__item;
     confirmJoinToBundle(source, entry);
   });
 }
@@ -1257,10 +1281,20 @@ function wireDragSource(card) {
     e.stopPropagation();
     card.classList.remove("item-card--join-target");
     joinHandled = true;
-    const source = draggedCard.__item;
+    const source = draggedSourceItem();
     const target = card.__item;
-    confirmJoin(source, target);
+    if (source) confirmJoin(source, target);
   });
+}
+
+/** The representative item of whatever is being dragged (card or bundle). */
+function draggedSourceItem() {
+  if (!draggedCard) return null;
+  if (draggedCard.__item) return draggedCard.__item;
+  if (draggedCard.__bundle && draggedCard.__bundle.items.length) {
+    return draggedCard.__bundle.items[0];
+  }
+  return null;
 }
 
 /** Ask before grouping two materials (drag one card onto another). */
