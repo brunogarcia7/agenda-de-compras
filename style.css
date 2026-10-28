@@ -676,6 +676,21 @@ a { color: inherit; }
 }
 .item-card:active { cursor: grabbing; }
 .item-card--dragging { opacity: 0.5; transform: scale(0.98) rotate(-0.3deg); box-shadow: var(--shadow-lg); }
+
+/* Card is grabbed only by the grip handle; the rest allows text selection. */
+.item-card { cursor: default; }
+.item-card[draggable="true"] { cursor: grabbing; }
+.item-card__actions { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; margin: -4px -4px 0 0; }
+.item-card__grip {
+  width: 30px; height: 30px;
+  border: none; background: transparent; color: var(--text-3);
+  border-radius: 9px; cursor: grab; line-height: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease);
+  touch-action: none; /* let pointer drag work on touch */
+}
+.item-card__grip:hover { background: var(--surface-3); color: var(--text); }
+.item-card__grip:active { cursor: grabbing; }
 /* Highlight the card you'd group with when dropping one card onto another. */
 .item-card--join-target {
   border-color: var(--accent);
@@ -706,7 +721,7 @@ a { color: inherit; }
 
 .item-card__kebab {
   flex-shrink: 0;
-  width: 32px; height: 32px; margin: -6px -6px 0 0;
+  width: 30px; height: 30px;
   border: none; background: transparent; color: var(--text-3);
   border-radius: 9px; cursor: pointer; line-height: 0;
   display: inline-flex; align-items: center; justify-content: center;

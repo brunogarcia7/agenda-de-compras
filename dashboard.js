@@ -397,7 +397,9 @@ function renderCard(item) {
   const card = document.createElement("div");
   card.className = "item-card" + (overdue ? " item-card--overdue" : "");
   card.dataset.id = item.id;
-  card.draggable = true;
+  // Not draggable by default — only when grabbed by the drag handle, so
+  // text stays selectable everywhere else.
+  card.draggable = false;
   card.__item = item;
 
   const obraRow = item.obra
@@ -434,7 +436,10 @@ function renderCard(item) {
     '<h3 class="item-card__name">' + window.UI.escapeHtml(item.name) + "</h3>" +
     '<span class="item-card__qty">' + window.UI.escapeHtml(item.quantity || "A definir") + "</span>" +
     "</div>" +
+    '<div class="item-card__actions">' +
+    '<button class="item-card__grip" type="button" aria-label="Arrastar para mover ou agrupar" title="Arraste para mover ou agrupar">' + window.UI.glyph("grip", 16) + "</button>" +
     '<button class="item-card__kebab" type="button" aria-label="Opções" title="Opções">' + window.UI.glyph("kebab", 18) + "</button>" +
+    "</div>" +
     "</div>" +
     '<div class="item-card__meta">' + obraRow + obsRow + "</div>" +
     '<div class="item-card__footer">' +
@@ -455,8 +460,21 @@ function renderCard(item) {
     openCardMenu(item, card, e.currentTarget);
   });
 
+  wireGripHandle(card, card.querySelector(".item-card__grip"));
   wireDragSource(card);
   return card;
+}
+
+/**
+ * The card is only draggable while the user holds the grip handle.
+ * This keeps text selectable on the rest of the card.
+ */
+function wireGripHandle(card, grip) {
+  if (!grip) return;
+  grip.addEventListener("pointerdown", () => { card.draggable = true; });
+  grip.addEventListener("pointerup", () => { card.draggable = false; });
+  // Safety: once a drag ends, lock it again.
+  card.addEventListener("dragend", () => { card.draggable = false; });
 }
 
 /* -------------------- Bundle card ------------------------ */
