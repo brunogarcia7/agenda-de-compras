@@ -116,8 +116,8 @@ async function initRequisitionForm() {
   const submitBtn = document.getElementById("submit-btn");
   const reviewHost = document.getElementById("review");
 
-  // Suggest previously-used obras in the datalist.
-  loadObraSuggestions();
+  // Populate the obra select with the registered (active) obras.
+  loadObraOptions();
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -127,7 +127,7 @@ async function initRequisitionForm() {
     const urgenciaInput = form.querySelector('input[name="urgencia"]:checked');
     const urgencia = urgenciaInput ? urgenciaInput.value : "";
 
-    if (!obra) return showToast("Informe a obra.", "error");
+    if (!obra) return showToast("Selecione a obra.", "error");
     if (!materiais) return showToast("Descreva os materiais.", "error");
     if (!urgencia) return showToast("Selecione a urgência.", "error");
 
@@ -201,25 +201,38 @@ async function initRequisitionForm() {
     }
   }
 
-  async function loadObraSuggestions() {
-    const list = document.getElementById("obra-suggestions");
-    if (!list) return;
+  async function loadObraOptions() {
+    const sel = document.getElementById("obra");
+    if (!sel) return;
     try {
       const sb = window.getSupabase();
-      const { data } = await sb
-        .from(window.APP_CONFIG.TABLE)
-        .select("obra")
-        .not("obra", "is", null)
-        .order("created_at", { ascending: false })
-        .limit(200);
-      const obras = [
-        ...new Set((data || []).map((r) => (r.obra || "").trim()).filter(Boolean)),
-      ];
-      list.innerHTML = obras
-        .map((o) => '<option value="' + escapeHtml(o) + '"></option>')
-        .join("");
-    } catch (_) {
-      /* suggestions are non-critical */
+      const { data, error } = await sb
+        .from(window.APP_CONFIG.OBRAS_TABLE)
+        .select("name, active")
+        .eq("active", true)
+        .order("name", { ascending: true });
+      if (error) throw error;
+      const obras = (data || []).map((o) => (o.name || "").trim()).filter(Boolean);
+
+      if (!obras.length) {
+        sel.innerHTML = '<option value="">Nenhuma obra cadastrada</option>';
+        // Point the user to Settings to register obras.
+        showToast(
+          "Cadastre uma obra em Configurações para começar.",
+          "",
+          { action: { label: "Abrir", onClick: () => (location.href = "config.html") } }
+        );
+        return;
+      }
+
+      sel.innerHTML =
+        '<option value="">Selecione a obra…</option>' +
+        obras
+          .map((o) => '<option value="' + escapeHtml(o) + '">' + escapeHtml(o) + "</option>")
+          .join("");
+    } catch (err) {
+      console.error(err);
+      sel.innerHTML = '<option value="">Erro ao carregar obras</option>';
     }
   }
 

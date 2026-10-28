@@ -27,6 +27,8 @@ window.APP_CONFIG = {
   TABLE: "purchase_items",
   // Table that stores the manual order of the category columns
   CATEGORY_ORDER_TABLE: "category_order",
+  // Table of registered obras (construction sites)
+  OBRAS_TABLE: "obras",
 };
 
 /** Returns true when the required Supabase keys look configured. */

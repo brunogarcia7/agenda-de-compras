@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Configurações — Agenda de Compras</title>
+    <script>
+      try {
+        var t = localStorage.getItem("theme");
+        if (t) document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar__inner">
+        <button class="topbar__burger" id="nav-burger" type="button" aria-label="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <span class="topbar__brand">
+          <span class="topbar__logo" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M5 12h14M5 17h9"/></svg>
+          </span>
+          Agenda de Compras
+        </span>
+        <nav class="topbar__nav" id="nav-links">
+          <a class="topbar__link" href="index.html">Nova solicitação</a>
+          <a class="topbar__link" href="dashboard.html">Compras</a>
+          <a class="topbar__link" href="history.html">Histórico</a>
+        </nav>
+        <a class="topbar__gear topbar__gear--active" href="config.html" aria-label="Configurações" title="Configurações">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        </a>
+        <div class="topbar__user-menu" id="user-menu"></div>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="page__header">
+        <h1 class="page__title">Configurações</h1>
+        <p class="page__subtitle">Ajustes da sua agenda de compras.</p>
+      </div>
+
+      <div id="config-banner"></div>
+
+      <!-- Settings sections (first one: Obras) -->
+      <section class="settings-section card">
+        <div class="settings-section__head">
+          <div>
+            <h2 class="settings-section__title">Obras</h2>
+            <p class="settings-section__desc">
+              Cadastre as obras. Na nova solicitação, só as obras ativas aparecem.
+            </p>
+          </div>
+        </div>
+
+        <form id="obra-form" class="obra-form" novalidate>
+          <input
+            class="input"
+            type="text"
+            id="obra-name"
+            placeholder="Nome da obra (ex.: Posto JK)"
+            autocomplete="off"
+            required
+          />
+          <button class="btn btn--primary" type="submit" id="obra-add">Adicionar</button>
+        </form>
+
+        <div id="obras-list" class="obras-list"></div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="ui.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script src="settings.js"></script>
+  </body>
+</html>

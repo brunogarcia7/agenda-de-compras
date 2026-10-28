@@ -95,3 +95,40 @@ drop policy if exists "auth update category_order" on public.category_order;
 create policy "auth update category_order"
   on public.category_order for update
   to authenticated using (true) with check (true);
+
+-- =========================================================
+-- 4) Obras (construction sites) — registered in Settings.
+--    The "Nova solicitação" screen offers only these obras.
+-- =========================================================
+create table if not exists public.obras (
+  id         uuid primary key default gen_random_uuid(),
+  name       text not null,
+  active     boolean not null default true,
+  created_by uuid default auth.uid() references auth.users (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+-- Avoid duplicate obra names (case-sensitive; trim on the client).
+create unique index if not exists obras_name_key on public.obras (name);
+
+alter table public.obras enable row level security;
+
+drop policy if exists "auth read obras" on public.obras;
+create policy "auth read obras"
+  on public.obras for select
+  to authenticated using (true);
+
+drop policy if exists "auth insert obras" on public.obras;
+create policy "auth insert obras"
+  on public.obras for insert
+  to authenticated with check (true);
+
+drop policy if exists "auth update obras" on public.obras;
+create policy "auth update obras"
+  on public.obras for update
+  to authenticated using (true) with check (true);
+
+drop policy if exists "auth delete obras" on public.obras;
+create policy "auth delete obras"
+  on public.obras for delete
+  to authenticated using (true);

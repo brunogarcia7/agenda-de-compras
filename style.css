@@ -186,6 +186,18 @@ a { color: inherit; }
 .topbar__link:hover { color: var(--text); background: var(--surface-3); }
 .topbar__link--active { color: var(--text); font-weight: 600; background: var(--surface-3); }
 
+/* Discreet settings gear in the topbar */
+.topbar__gear {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 10px;
+  color: var(--text-2); text-decoration: none; flex-shrink: 0;
+  transition: color 0.18s var(--ease), background 0.18s var(--ease), transform 0.3s var(--ease);
+}
+.topbar__gear:hover { color: var(--text); background: var(--surface-3); }
+.topbar__gear:hover svg { transform: rotate(40deg); }
+.topbar__gear svg { transition: transform 0.4s var(--ease-spring); display: block; }
+.topbar__gear--active { color: var(--accent); background: var(--accent-soft); }
+
 .topbar__user-menu {
   display: flex;
   align-items: center;
@@ -1168,4 +1180,44 @@ a { color: inherit; }
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ==================== Settings page ==================== */
+.settings-section { max-width: 640px; }
+.settings-section + .settings-section { margin-top: var(--s5); }
+.settings-section__head { margin-bottom: var(--s5); }
+.settings-section__title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+.settings-section__desc { font-size: 14px; color: var(--text-2); margin: 0; }
+
+.obra-form { display: flex; gap: var(--s3); margin-bottom: var(--s4); }
+.obra-form .input { flex: 1 1 auto; }
+
+.obras-list { display: flex; flex-direction: column; gap: var(--s2); }
+.settings-empty { font-size: 14px; color: var(--text-3); padding: var(--s4) 2px; margin: 0; }
+
+.obra-row {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: 10px var(--s3);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--surface);
+  animation: cardIn 0.24s var(--ease-out) both;
+}
+.obra-row__icon {
+  width: 30px; height: 30px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px; background: var(--accent-soft); color: var(--accent-on-soft);
+}
+.obra-row__name { font-size: 15px; font-weight: 600; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.obra-row__tag {
+  font-size: 11.5px; font-weight: 700; color: var(--text-2);
+  background: var(--surface-3); border-radius: 980px; padding: 2px 9px;
+}
+.obra-row__actions { display: inline-flex; align-items: center; gap: var(--s2); flex-shrink: 0; }
+.obra-row__del { width: 34px; height: 34px; }
+.obra-row--inactive { opacity: 0.6; }
+.obra-row--inactive .obra-row__icon { background: var(--surface-3); color: var(--text-3); }
+
+@media (max-width: 600px) {
+  .obra-form { flex-direction: column; }
+  .obra-form .btn { width: 100%; }
 }
