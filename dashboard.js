@@ -917,6 +917,11 @@ async function joinItems(a, b) {
     b.bundle_id ||
     (crypto.randomUUID ? crypto.randomUUID() : "bundle-" + Date.now());
 
+  // Grouping is allowed across categories. The whole bundle adopts the
+  // target's category (b = the card you dropped onto) so it renders as one
+  // card in one category group.
+  const targetCategory = b.category;
+
   // Everything currently bundled with a or b joins too.
   const affected = state.items.filter(
     (i) =>
@@ -931,10 +936,13 @@ async function joinItems(a, b) {
     const ids = affected.map((i) => i.id);
     const { error } = await sb
       .from(window.APP_CONFIG.TABLE)
-      .update({ bundle_id: bundleId })
+      .update({ bundle_id: bundleId, category: targetCategory })
       .in("id", ids);
     if (error) throw error;
-    affected.forEach((i) => (i.bundle_id = bundleId));
+    affected.forEach((i) => {
+      i.bundle_id = bundleId;
+      i.category = targetCategory;
+    });
     render();
     window.showToast("Itens agrupados no mesmo card.", "success");
   } catch (err) {
