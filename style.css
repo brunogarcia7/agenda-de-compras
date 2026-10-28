@@ -63,7 +63,12 @@
   --s7: 48px;
   --s8: 64px;
 
+  /* Motion curves (Apple-like): a calm standard ease for most things,
+     a soft spring with a touch of overshoot for elements that appear,
+     and a quick ease-out for exits/feedback. */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --ease-out: cubic-bezier(0.33, 0, 0.1, 1);
   --maxw-form: 760px;
   --maxw-wide: 1480px;
 }
@@ -570,9 +575,13 @@ a { color: inherit; }
 .group__chevron {
   color: var(--text-3);
   display: inline-flex;
-  transition: transform 0.2s var(--ease);
+  transition: transform 0.24s var(--ease-spring), color 0.16s var(--ease);
 }
 .group--collapsed .group__chevron { transform: rotate(-90deg); }
+/* When the user expands a group, its cards fade/slide in briefly (added as
+   a transient class in JS so it doesn't replay on every re-render). */
+.group--expanding .group__list { animation: listReveal 0.28s var(--ease-out) both; }
+@keyframes listReveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 .group__cat-icon {
   width: 30px; height: 30px; flex-shrink: 0;
   display: inline-flex; align-items: center; justify-content: center;
@@ -666,9 +675,15 @@ a { color: inherit; }
   cursor: grab;
   transition: box-shadow 0.2s var(--ease), border-color 0.2s var(--ease),
     transform 0.16s var(--ease), opacity 0.28s var(--ease);
-  animation: cardIn 0.24s var(--ease) both;
 }
-@keyframes cardIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+/* Entrance only on first load (board gets .board--enter), not on every
+   re-render from search/filter. Gentle stagger for a polished arrival,
+   capped so it never makes people wait. */
+.board--enter .group { animation: cardIn 0.4s var(--ease-out) both; }
+.board--enter .group:nth-child(2) { animation-delay: 0.05s; }
+.board--enter .group:nth-child(3) { animation-delay: 0.1s; }
+.board--enter .group:nth-child(n + 4) { animation-delay: 0.14s; }
+@keyframes cardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .item-card:hover {
   transform: translateY(-1px);
   border-color: var(--border-strong);
@@ -697,7 +712,12 @@ a { color: inherit; }
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent), var(--shadow-md);
   transform: translateY(-1px) scale(1.01);
 }
-.item-card--removing { opacity: 0; transform: scale(0.97); }
+/* Confident, brief completion: lift + fade + slight collapse. */
+.item-card--removing {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.96);
+  transition: opacity 0.26s var(--ease-out), transform 0.26s var(--ease-out);
+}
 
 /* priority = subtle full-height left bar + badge, never a red card */
 .item-card--overdue { border-color: color-mix(in srgb, var(--danger) 28%, var(--border)); }
@@ -773,8 +793,17 @@ a { color: inherit; }
 .done-btn:hover { background: var(--accent); color: #fff; box-shadow: var(--shadow-sm); }
 .done-btn:active { transform: scale(0.94); }
 .done-btn:disabled { opacity: 0.7; cursor: wait; }
-/* Brief confirmation flash the moment it succeeds. */
-.item-card--done { box-shadow: 0 0 0 1.5px var(--ok); }
+/* Brief success flash the moment it's marked bought. */
+.item-card--done {
+  box-shadow: 0 0 0 2px var(--ok), var(--shadow-md);
+  border-color: transparent;
+  animation: donePulse 0.3s var(--ease-spring);
+}
+@keyframes donePulse {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.015); }
+  100% { transform: scale(1); }
+}
 
 /* column dragging */
 .column--dragging { opacity: 0.6; transform: scale(0.98) rotate(-0.3deg); box-shadow: var(--shadow-lg); }
@@ -789,9 +818,10 @@ a { color: inherit; }
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   padding: 6px;
-  animation: menuIn 0.14s var(--ease) both;
+  animation: menuIn 0.18s var(--ease-spring) both;
+  transform-origin: top right;
 }
-@keyframes menuIn { from { opacity: 0; transform: scale(0.97) translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes menuIn { from { opacity: 0; transform: scale(0.94) translateY(-6px); } to { opacity: 1; transform: none; } }
 .menu__item {
   display: flex; align-items: center; gap: 10px;
   width: 100%; text-align: left;
@@ -889,8 +919,8 @@ a { color: inherit; }
   background: var(--text); color: var(--bg-elev);
   padding: 12px 16px; border-radius: 14px;
   box-shadow: var(--shadow-lg); font-size: 14px; font-weight: 500;
-  opacity: 0; transform: translateY(16px);
-  transition: opacity 0.26s var(--ease), transform 0.26s var(--ease);
+  opacity: 0; transform: translateY(20px) scale(0.96);
+  transition: opacity 0.28s var(--ease-out), transform 0.34s var(--ease-spring);
 }
 .toast2--show { opacity: 1; transform: none; }
 .toast2--success { background: var(--ok); color: #fff; }

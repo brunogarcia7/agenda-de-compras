@@ -138,7 +138,7 @@ async function loadBoard() {
     state.boughtTodayCount = boughtRes.error ? 0 : (boughtRes.data || []).length;
 
     populateObraFilter();
-    render();
+    render({ enter: true });
   } catch (err) {
     console.error(err);
     renderState("error", boardEl, err.message);
@@ -193,11 +193,14 @@ function visibleItems() {
 
 /* ------------------------ Render ------------------------- */
 
-function render() {
+function render(opts) {
   renderSummary();
 
   const items = visibleItems();
   boardEl.innerHTML = "";
+  // Entrance animation only when asked (first load) — never on the frequent
+  // re-renders from search/filter/urgency, per motion guidance.
+  boardEl.classList.toggle("board--enter", !!(opts && opts.enter));
 
   if (!state.items.length) {
     renderState("empty", boardEl);
@@ -382,8 +385,18 @@ function toggleGroup(category, group, header) {
   const nowCollapsed = !group.classList.contains("group--collapsed");
   group.classList.toggle("group--collapsed", nowCollapsed);
   header.setAttribute("aria-expanded", String(!nowCollapsed));
-  if (nowCollapsed) state.collapsed.add(category);
-  else state.collapsed.delete(category);
+  if (nowCollapsed) {
+    state.collapsed.add(category);
+  } else {
+    state.collapsed.delete(category);
+    // Play a brief reveal on the cards when expanding.
+    group.classList.add("group--expanding");
+    group.addEventListener(
+      "animationend",
+      () => group.classList.remove("group--expanding"),
+      { once: true }
+    );
+  }
   saveCollapsed();
 }
 
