@@ -23,6 +23,7 @@ const URGENCY_META = {
 const OVERDUE_DAYS = 2;
 
 const COLLAPSE_KEY = "collapsed-categories";
+const LAYOUT_KEY = "category-layouts"; // { category: "horizontal" | "vertical" }
 
 const state = {
   items: [], // pending items
@@ -31,6 +32,7 @@ const state = {
   search: "",
   boughtTodayCount: 0,
   collapsed: loadCollapsed(), // Set<string> of collapsed category names
+  layouts: loadLayouts(), // { [category]: "horizontal" | "vertical" }
 };
 
 function loadCollapsed() {
@@ -44,6 +46,20 @@ function loadCollapsed() {
 function saveCollapsed() {
   try {
     localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...state.collapsed]));
+  } catch (_) {
+    /* non-critical */
+  }
+}
+function loadLayouts() {
+  try {
+    return JSON.parse(localStorage.getItem(LAYOUT_KEY) || "{}") || {};
+  } catch (_) {
+    return {};
+  }
+}
+function saveLayouts() {
+  try {
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify(state.layouts));
   } catch (_) {
     /* non-critical */
   }
@@ -341,11 +357,13 @@ function renderGroup(category, entries) {
   group.className = "group" + (collapsed ? " group--collapsed" : "");
   group.dataset.category = category;
 
-  const header = document.createElement("button");
-  header.type = "button";
+  const layout = state.layouts[category] === "horizontal" ? "horizontal" : "vertical";
+
+  const header = document.createElement("div");
   header.className = "group__header";
-  header.setAttribute("aria-expanded", String(!collapsed));
+  // Clickable area (collapse/expand) + a layout toggle on the right.
   header.innerHTML =
+    '<button class="group__toggle" type="button" aria-expanded="' + String(!collapsed) + '">' +
     '<span class="group__chevron" aria-hidden="true">' +
     window.UI.glyph("chevron", 16) +
     "</span>" +
@@ -364,12 +382,23 @@ function renderGroup(category, entries) {
         " " +
         overdueCount +
         "</span>"
-      : "");
+      : "") +
+    "</button>" +
+    '<button class="group__layout" type="button" title="' +
+    (layout === "horizontal" ? "Ver empilhado (vertical)" : "Ver lado a lado (horizontal)") +
+    '" aria-label="Alternar disposição dos cards">' +
+    window.UI.glyph(layout === "horizontal" ? "rows" : "columns", 16) +
+    "</button>";
 
-  header.addEventListener("click", () => toggleGroup(category, group, header));
+  header.querySelector(".group__toggle").addEventListener("click", () =>
+    toggleGroup(category, group, header)
+  );
+  header.querySelector(".group__layout").addEventListener("click", () =>
+    toggleLayout(category, group)
+  );
 
   const list = document.createElement("div");
-  list.className = "group__list";
+  list.className = "group__list" + (layout === "horizontal" ? " group__list--horizontal" : "");
   list.dataset.category = category;
   entries.forEach((e) =>
     list.appendChild(e.bundle ? renderBundleCard(e) : renderCard(e.item))
@@ -381,10 +410,27 @@ function renderGroup(category, entries) {
   return group;
 }
 
+/** Switch a category between horizontal (side by side) and vertical. */
+function toggleLayout(category, group) {
+  const current = state.layouts[category] === "horizontal" ? "horizontal" : "vertical";
+  const next = current === "horizontal" ? "vertical" : "horizontal";
+  state.layouts[category] = next;
+  saveLayouts();
+
+  const list = group.querySelector(".group__list");
+  list.classList.toggle("group__list--horizontal", next === "horizontal");
+  const btn = group.querySelector(".group__layout");
+  if (btn) {
+    btn.innerHTML = window.UI.glyph(next === "horizontal" ? "rows" : "columns", 16);
+    btn.title = next === "horizontal" ? "Ver empilhado (vertical)" : "Ver lado a lado (horizontal)";
+  }
+}
+
 function toggleGroup(category, group, header) {
   const nowCollapsed = !group.classList.contains("group--collapsed");
   group.classList.toggle("group--collapsed", nowCollapsed);
-  header.setAttribute("aria-expanded", String(!nowCollapsed));
+  const toggleBtn = header.querySelector(".group__toggle") || header;
+  toggleBtn.setAttribute("aria-expanded", String(!nowCollapsed));
   if (nowCollapsed) {
     state.collapsed.add(category);
   } else {
@@ -1344,7 +1390,7 @@ function wireDropZone(list) {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     list.classList.add("group__list--over");
-    const after = getCardAfterPoint(list, e.clientY);
+    const after = getCardAfterPoint(list, e.clientX, e.clientY);
     if (after == null) list.appendChild(draggedCard);
     else list.insertBefore(draggedCard, after);
   });
@@ -1361,13 +1407,37 @@ function wireDropZone(list) {
   });
 }
 
-function getCardAfterPoint(list, y) {
+function getCardAfterPoint(list, x, y) {
   const cards = [...list.querySelectorAll(".item-card:not(.item-card--dragging)")];
+  const horizontal = list.classList.contains("group__list--horizontal");
+
+  if (!horizontal) {
+    // Vertical: find the first card whose vertical center is below the pointer.
+    let closest = null;
+    let closestOffset = Number.NEGATIVE_INFINITY;
+    for (const c of cards) {
+      const box = c.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closestOffset) {
+        closestOffset = offset;
+        closest = c;
+      }
+    }
+    return closest;
+  }
+
+  // Horizontal (wrapping): prefer cards on the same row (by Y), then the
+  // first whose horizontal center is to the right of the pointer.
+  const sameRow = cards.filter((c) => {
+    const box = c.getBoundingClientRect();
+    return y >= box.top && y <= box.bottom;
+  });
+  const pool = sameRow.length ? sameRow : cards;
   let closest = null;
   let closestOffset = Number.NEGATIVE_INFINITY;
-  for (const c of cards) {
+  for (const c of pool) {
     const box = c.getBoundingClientRect();
-    const offset = y - box.top - box.height / 2;
+    const offset = x - box.left - box.width / 2;
     if (offset < 0 && offset > closestOffset) {
       closestOffset = offset;
       closest = c;
