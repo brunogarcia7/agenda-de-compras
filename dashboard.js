@@ -533,10 +533,12 @@ function renderBundleCard(entry) {
 
   const lines = items
     .map(
-      (it) =>
-        '<div class="bundle-line">' +
+      (it, idx) =>
+        '<div class="bundle-line" data-idx="' + idx + '">' +
         '<span class="bundle-line__name">' + window.UI.escapeHtml(it.name) + "</span>" +
         '<span class="bundle-line__qty">' + window.UI.escapeHtml(it.quantity || "A definir") + "</span>" +
+        '<button class="bundle-line__edit" type="button" aria-label="Editar item" title="Editar item">' +
+        window.UI.glyph("edit", 15) + "</button>" +
         "</div>"
     )
     .join("");
@@ -574,6 +576,15 @@ function renderBundleCard(entry) {
   card.querySelector(".item-card__kebab").addEventListener("click", (e) => {
     e.stopPropagation();
     openBundleMenu(entry, card, e.currentTarget);
+  });
+
+  // Per-line edit (pencil) inside the bundle.
+  card.querySelectorAll(".bundle-line__edit").forEach((btn, idx) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const it = entry.items[idx];
+      if (it) openEditModal(it, card);
+    });
   });
 
   // A single card dragged onto a bundle joins that bundle.

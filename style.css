@@ -669,12 +669,26 @@ a { color: inherit; }
   overflow: hidden;
 }
 .bundle-line {
-  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3);
-  padding: 9px 12px;
+  display: flex; align-items: center; gap: var(--s3);
+  padding: 8px 10px 8px 12px;
 }
 .bundle-line + .bundle-line { border-top: 1px solid var(--border); }
-.bundle-line__name { font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
+.bundle-line__name { font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; flex: 1 1 auto; min-width: 0; }
 .bundle-line__qty { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+.bundle-line__edit {
+  flex-shrink: 0;
+  width: 28px; height: 28px; border: none; background: transparent;
+  color: var(--text-3); border-radius: 8px; cursor: pointer; line-height: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.16s var(--ease), background 0.16s var(--ease), color 0.16s var(--ease);
+}
+.bundle-line:hover .bundle-line__edit,
+.bundle-line__edit:focus-visible { opacity: 1; }
+.bundle-line__edit:hover { background: var(--surface-3); color: var(--text); }
+/* On touch screens the pencil is always visible (no hover). */
+@media (hover: none) {
+  .bundle-line__edit { opacity: 1; }
+}
 
 /* ====================== Item card ===================== */
 .item-card {
