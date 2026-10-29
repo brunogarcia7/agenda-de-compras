@@ -54,6 +54,7 @@ async function analyzeMaterials(rawMaterials) {
       name: String(it.name || "").trim(),
       quantity: String(it.quantity || "A definir").trim(),
       observation: String(it.observation || "").trim(),
+      family: String(it.family || "").trim(),
     }));
 }
 window.analyzeMaterials = analyzeMaterials;
@@ -152,17 +153,40 @@ async function initRequisitionForm() {
         (crypto.randomUUID && crypto.randomUUID()) ||
         "req-" + Date.now() + "-" + Math.random().toString(16).slice(2);
 
-      const rows = items.map((it) => ({
-        batch_id: batchId,
-        obra,
-        // The IA separates observations from materials and returns one per item.
-        observacao: it.observation || "",
-        category: it.category,
-        name: it.name,
-        quantity: it.quantity,
-        urgency: urgencia,
-        status: "Novo Pedido",
-      }));
+      // Auto-group: items sharing the same AI "family" (within the same
+      // category) get one bundle_id — but only when the family has 2+ members.
+      // Single items stay individual.
+      const famCount = {};
+      items.forEach((it) => {
+        const key = familyKey(it);
+        famCount[key] = (famCount[key] || 0) + 1;
+      });
+      const famBundle = {};
+
+      const rows = items.map((it) => {
+        const key = familyKey(it);
+        let bundleId = null;
+        if (famCount[key] >= 2) {
+          if (!famBundle[key]) {
+            famBundle[key] =
+              (crypto.randomUUID && crypto.randomUUID()) ||
+              "b-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+          }
+          bundleId = famBundle[key];
+        }
+        return {
+          batch_id: batchId,
+          obra,
+          // The IA separates observations from materials and returns one per item.
+          observacao: it.observation || "",
+          category: it.category,
+          name: it.name,
+          quantity: it.quantity,
+          urgency: urgencia,
+          status: "Novo Pedido",
+          bundle_id: bundleId,
+        };
+      });
 
       const sb = window.getSupabase();
       const { error } = await sb.from(window.APP_CONFIG.TABLE).insert(rows);
@@ -263,6 +287,15 @@ async function initRequisitionForm() {
 }
 
 /* ----------------------- Utilities ----------------------- */
+
+/** Key for auto-grouping: AI family within a category. Falls back to the
+    item name so items without a family never merge with others. */
+function familyKey(it) {
+  const fam = (it.family || "").trim().toLowerCase();
+  const cat = (it.category || "").trim().toLowerCase();
+  return cat + "||" + (fam || "name:" + (it.name || "").trim().toLowerCase());
+}
+window.familyKey = familyKey;
 
 function groupBy(arr, keyFn) {
   return arr.reduce((acc, item) => {
